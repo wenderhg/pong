@@ -14,9 +14,12 @@
 
 Ball = Class{}
 
+
 function Ball:init(x, y, width, height)
-    self.x = x
-    self.y = y
+    start_x = x
+    start_y = y
+    self.x = start_x
+    self.y = start_y
     self.width = width
     self.height = height
 
@@ -31,8 +34,8 @@ end
     on both axes.
 ]]
 function Ball:reset()
-    self.x = VIRTUAL_WIDTH / 2 - 2
-    self.y = VIRTUAL_HEIGHT / 2 - 2
+    self.x = start_x
+    self.y = start_y
     self.dy = math.random(2) == 1 and -100 or 100
     self.dx = math.random(-50, 50)
 end
