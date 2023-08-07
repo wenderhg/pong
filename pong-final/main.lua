@@ -143,9 +143,9 @@ function love.update(dt)
         -- on player who last scored
         ball.dy = math.random(-50, 50)
         if servingPlayer == 1 then
-            ball.dx = math.random(14, 20)
+            ball.dx = math.random(140, 200)
         else
-            ball.dx = -math.random(14, 20)
+            ball.dx = -math.random(140, 200)
         end
     elseif gameState == 'play' then
         -- detect ball collision with paddles, reversing dx if true and
@@ -415,19 +415,46 @@ function moveAutomatically(player, ball, otherPlayer)
         end
     elseif aiAlgorithm == 4 then
         -- Player follows the ball to not miss
-    
+        -- don't move if within a range
+        if (player.y - ball.y > 0 and player.y - ball.y < player.height) then
+            player.dy = 0
+        -- move up if passed the half of the paddle
+        elseif (player.y - player.height / 2 > ball.y) then
+            player.dy = -PADDLE_SPEED
+        -- move down
+        else
+            player.dy = PADDLE_SPEED
+        end
     elseif aiAlgorithm == 5 then
         -- Player follows the other player
-            
-    elseif aiAlgorithm == 5 then
-        -- Player goes opsite of the other player
-            
+        -- It does consider one of the players is not an AI
+        if player1.isAi then
+            player1.dy = player2.dy
+        else
+            player2.dy = player1.dy
+        end
+    elseif aiAlgorithm == 6 then
+        -- Player goes oposite of the other player
+        if player1.isAi then
+            player1.dy = -player2.dy 
+        else
+            player2.dy = -player1.dy
+        end            
     end
 end
 
 function randomizeAI()
     -- randomize the AI algorith that will be applied
-    aiAlgorithm = 3 --math.random(1, 5)
+    -- for two AIs the methods that will show some movement are 1 to 3
+    if (player1.isAi and player2.isAi) then
+        aiAlgorithm = math.random(1, 3)
+    else
+        aiAlgorithm = math.random(1, 10)
+        -- Increase changes of a real battle with 4
+        if aiAlgorithm > 6 then
+            aiAlgorithm = 4
+        end
+    end
 end
 
 function initializeAIVariables()
