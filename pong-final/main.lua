@@ -101,6 +101,8 @@ function love.load()
     player1Score = 0
     player2Score = 0
 
+    initializeAIVariables()
+
     -- either going to be 1 or 2; whomever is scored on gets to serve the
     -- following turn
     servingPlayer = 1
@@ -141,9 +143,9 @@ function love.update(dt)
         -- on player who last scored
         ball.dy = math.random(-50, 50)
         if servingPlayer == 1 then
-            ball.dx = math.random(140, 200)
+            ball.dx = math.random(14, 20)
         else
-            ball.dx = -math.random(140, 200)
+            ball.dx = -math.random(14, 20)
         end
     elseif gameState == 'play' then
         -- detect ball collision with paddles, reversing dx if true and
@@ -207,7 +209,7 @@ function love.update(dt)
                 gameState = 'serve'
                 -- places the ball in the middle of the screen, no velocity
                 ball:reset()
-            end
+            end            
         end
 
         if ball.x > VIRTUAL_WIDTH then
@@ -229,7 +231,9 @@ function love.update(dt)
     -- paddles can move no matter what state we're in
     --
     -- player 1
-    if love.keyboard.isDown('w') then
+    if player1.isAi and gameState == 'play' then
+        moveAutomatically(player1, ball, player2)
+    elseif love.keyboard.isDown('w') then
         player1.dy = -PADDLE_SPEED
     elseif love.keyboard.isDown('s') then
         player1.dy = PADDLE_SPEED
@@ -238,7 +242,9 @@ function love.update(dt)
     end
 
     -- player 2
-    if love.keyboard.isDown('up') then
+    if player2.isAi and gameState == 'play' then
+        moveAutomatically(player2, ball, player1)
+    elseif love.keyboard.isDown('up') then
         player2.dy = -PADDLE_SPEED
     elseif love.keyboard.isDown('down') then
         player2.dy = PADDLE_SPEED
@@ -273,11 +279,13 @@ function love.keypressed(key)
         if gameState == 'start' then
             gameState = 'serve'
         elseif gameState == 'serve' then
+            -- randomize AI before new play starts
+            randomizeAI()
             gameState = 'play'
         elseif gameState == 'done' then
             -- game is simply in a restart phase here, but will set the serving
             -- player to the opponent of whomever won for fairness!
-            gameState = 'serve'
+            gameState = 'start'
 
             ball:reset()
 
@@ -292,6 +300,10 @@ function love.keypressed(key)
                 servingPlayer = 1
             end
         end
+    elseif key == '1' then
+        player1.isAi = false
+    elseif key == '2' then
+        player2.isAi = false
     end
 end
 
@@ -310,7 +322,8 @@ function love.draw()
         -- UI messages
         love.graphics.setFont(smallFont)
         love.graphics.printf('Welcome to Pong!', 0, 10, VIRTUAL_WIDTH, 'center')
-        love.graphics.printf('Press Enter to begin!', 0, 20, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Press 1 and/or 2 to select player.', 0, 20, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Press Enter to begin!', 0, 30, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'serve' then
         -- UI messages
         love.graphics.setFont(smallFont)
@@ -326,17 +339,20 @@ function love.draw()
             0, 10, VIRTUAL_WIDTH, 'center')
         love.graphics.setFont(smallFont)
         love.graphics.printf('Press Enter to restart!', 0, 30, VIRTUAL_WIDTH, 'center')
+        -- reset AI state of players
+        player1.isAi = true
+        player2.isAi = true
     end
 
     -- show the score before ball is rendered so it can move over the text
     displayScore()
-    
+
     player1:render()
     player2:render()
     ball:render()
 
-    -- display FPS for debugging; simply comment out to remove
-    displayFPS()
+    -- display FPS and other info for debugging; simply comment out to remove
+    displayGameInfo()
 
     -- end our drawing to push
     push:finish()
@@ -357,10 +373,74 @@ end
 --[[
     Renders the current FPS.
 ]]
-function displayFPS()
+function displayGameInfo()
     -- simple FPS display across all states
     love.graphics.setFont(smallFont)
     love.graphics.setColor(0, 255/255, 0, 255/255)
     love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
+    love.graphics.print('AI: ' .. tostring(aiAlgorithm), 60, 10)
+    love.graphics.print('Player1 is AI: ' .. tostring(player1.isAi), 10, 20)
+    love.graphics.print('Player2 is AI: ' .. tostring(player2.isAi), VIRTUAL_WIDTH / 2 + 110, 20)
     love.graphics.setColor(255, 255, 255, 255)
+end
+
+function moveAutomatically(player, ball, otherPlayer)
+    -- based on the type of AI will move the paddle
+    if aiAlgorithm == 1 then
+        -- Player randoming goes up and down
+        -- if player reach botton limit it switchs to go up
+        if player.dy >= 0 and player.y >= playerDestiny then
+            player.dy = -PADDLE_SPEED
+            playerDestiny = math.random(VIRTUAL_HEIGHT)
+        -- if player reach up limit it switchs to go up considering the paddle size for the bottom limit
+        elseif player.dy <= 0 and player.y <= playerDestiny then
+            player.dy = PADDLE_SPEED
+            playerDestiny = math.random(VIRTUAL_HEIGHT - player.height)
+        end
+    elseif aiAlgorithm == 2 then
+        -- Player goes up and down to borders
+        if player.dy == 0 then
+            player.dy = math.random(-1, 1) * PADDLE_SPEED
+        end
+        reversePlayer(player, 0, VIRTUAL_HEIGHT - player.height)
+    elseif aiAlgorithm == 3 then
+        -- Player stays on the part of screen that ball is moving towards
+        if player.dy == 0 then
+            player.dy = (ball.dy / ball.dy) * PADDLE_SPEED
+        end
+        if ball.dy > 0 then
+            reversePlayer(player, VIRTUAL_HEIGHT / 2, VIRTUAL_HEIGHT - player.height)
+        else 
+            reversePlayer(player, 0, VIRTUAL_HEIGHT / 2 - player.height)
+        end
+    elseif aiAlgorithm == 4 then
+        -- Player follows the ball to not miss
+    
+    elseif aiAlgorithm == 5 then
+        -- Player follows the other player
+            
+    elseif aiAlgorithm == 5 then
+        -- Player goes opsite of the other player
+            
+    end
+end
+
+function randomizeAI()
+    -- randomize the AI algorith that will be applied
+    aiAlgorithm = 3 --math.random(1, 5)
+end
+
+function initializeAIVariables()
+    --Algorithm that's AI will be using
+    randomizeAI()
+    --Initializer playerDestinty for AI
+    playerDestiny = math.random(VIRTUAL_HEIGHT)
+end
+
+function reversePlayer(player, topLimit, bottomLimit) 
+    if player.y <= topLimit then
+        player.dy = PADDLE_SPEED
+    elseif player.y >= bottomLimit then
+        player.dy = -PADDLE_SPEED
+    end
 end
