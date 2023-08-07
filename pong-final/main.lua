@@ -404,7 +404,7 @@ function moveAutomatically(player, ball, otherPlayer)
         end
         reversePlayer(player, 0, VIRTUAL_HEIGHT - player.height)
     elseif aiAlgorithm == 3 then
-        -- Player stays on the part of screen that ball is moving towards
+        -- Player goes the same direction of ball and protect top or botton corner
         if player.dy == 0 then
             player.dy = (ball.dy / ball.dy) * PADDLE_SPEED
         end
@@ -414,18 +414,24 @@ function moveAutomatically(player, ball, otherPlayer)
             reversePlayer(player, 0, VIRTUAL_HEIGHT / 2 - player.height)
         end
     elseif aiAlgorithm == 4 then
+        -- Player stays on the part of screen that ball is moving towards
+        if player.dy == 0 then
+            player.dy = (ball.dy / ball.dy) * PADDLE_SPEED
+        end
+        if ball.dy > 0 and ball.y >= VIRTUAL_HEIGHT / 2 then
+            reversePlayer(player, VIRTUAL_HEIGHT / 2, VIRTUAL_HEIGHT - player.height)
+        else 
+            reversePlayer(player, 0, VIRTUAL_HEIGHT / 2 - player.height)
+        end
+    elseif aiAlgorithm == 5 then
         -- Player follows the ball to not miss
-        -- don't move if within a range
-        if (player.y - ball.y > 0 and player.y - ball.y < player.height) then
-            player.dy = 0
-        -- move up if passed the half of the paddle
-        elseif (player.y - player.height / 2 > ball.y) then
+        if (player.y > ball.y) then
             player.dy = -PADDLE_SPEED
         -- move down
         else
             player.dy = PADDLE_SPEED
         end
-    elseif aiAlgorithm == 5 then
+    elseif aiAlgorithm == 6 then
         -- Player follows the other player
         -- It does consider one of the players is not an AI
         if player1.isAi then
@@ -433,26 +439,34 @@ function moveAutomatically(player, ball, otherPlayer)
         else
             player2.dy = player1.dy
         end
-    elseif aiAlgorithm == 6 then
+    elseif aiAlgorithm == 7 then
         -- Player goes oposite of the other player
         if player1.isAi then
             player1.dy = -player2.dy 
         else
             player2.dy = -player1.dy
         end            
+    elseif aiAlgorithm == 8 then
+        -- Player follows the ball to not miss but slower
+        if (player.y > ball.y) then
+            player.dy = -PADDLE_SPEED / 2
+        -- move down
+        else
+            player.dy = PADDLE_SPEED / 2
+        end
     end
 end
 
 function randomizeAI()
     -- randomize the AI algorith that will be applied
-    -- for two AIs the methods that will show some movement are 1 to 3
+    -- for two AIs the methods that will show some movement are 1 to 4
     if (player1.isAi and player2.isAi) then
-        aiAlgorithm = math.random(1, 3)
+        aiAlgorithm = math.random(1, 4)
     else
         aiAlgorithm = math.random(1, 10)
-        -- Increase changes of a real battle with 4
-        if aiAlgorithm > 6 then
-            aiAlgorithm = 4
+        -- Increase changes of a real battle with 5
+        if aiAlgorithm > 8 then
+            aiAlgorithm = 5
         end
     end
 end
