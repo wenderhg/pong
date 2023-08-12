@@ -117,6 +117,9 @@ function love.load()
     -- 3. 'play' (the ball is in play, bouncing between paddles)
     -- 4. 'done' (the game is over, with a victor, ready for restart)
     gameState = 'start'
+
+    --state for debug info
+    debugInfo = false
 end
 
 --[[
@@ -304,6 +307,8 @@ function love.keypressed(key)
         player1.isAi = false
     elseif key == '2' then
         player2.isAi = false
+    elseif key == 'd' then
+        debugInfo = not debugInfo
     end
 end
 
@@ -374,14 +379,16 @@ end
     Renders the current FPS.
 ]]
 function displayGameInfo()
-    -- simple FPS display across all states
-    love.graphics.setFont(smallFont)
-    love.graphics.setColor(0, 255/255, 0, 255/255)
-    love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
-    love.graphics.print('AI: ' .. tostring(aiAlgorithm), 60, 10)
-    love.graphics.print('Player1 is AI: ' .. tostring(player1.isAi), 10, 20)
-    love.graphics.print('Player2 is AI: ' .. tostring(player2.isAi), VIRTUAL_WIDTH / 2 + 110, 20)
-    love.graphics.setColor(255, 255, 255, 255)
+    if debugInfo then
+        -- simple FPS display across all states
+        love.graphics.setFont(smallFont)
+        love.graphics.setColor(0, 255/255, 0, 255/255)
+        love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
+        love.graphics.print('AI: ' .. tostring(aiAlgorithm), 60, 10)
+        love.graphics.print('Player1 is AI: ' .. tostring(player1.isAi), 10, 20)
+        love.graphics.print('Player2 is AI: ' .. tostring(player2.isAi), VIRTUAL_WIDTH / 2 + 110, 20)
+        love.graphics.setColor(255, 255, 255, 255)
+    end
 end
 
 function moveAutomatically(player, ball, otherPlayer)
