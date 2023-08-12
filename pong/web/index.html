@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, minimum-scale=1, maximum-scale=1">
-    <title>Techmino</title>
+    <title>Pong by Wender</title>
 
     <!-- Load custom style sheet -->
     <link rel="stylesheet" type="text/css" href="theme/love.css">
@@ -12,7 +12,7 @@
   <body>
     <center>
       <div>
-        <h1>Techmino</h1>
+        <h1>Pong</h1>
         <canvas id="loadingCanvas" oncontextmenu="event.preventDefault()" width="800" height="600"></canvas>
         <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
       </div>
@@ -60,7 +60,7 @@
       }, false);
 
       var Module = {
-        arguments: ["./game.love"],
+        arguments: ["./pong.love"],
         INITIAL_MEMORY: 536870912,
         printErr: console.error.bind(console),
         canvas: (function() {
